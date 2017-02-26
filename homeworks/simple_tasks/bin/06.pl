@@ -23,9 +23,9 @@ sub encode {
     my ($str, $key) = @_;
     my $encoded_str = '';
 
-    # ...
-    # Алгоритм шифрования
-    # ...
+    foreach my $cha (split //, $str){       
+        $encoded_str = $encoded_str.chr( (ord($cha) + ($key)) % 127 );    
+    }
 
     print "$encoded_str\n";
 }
@@ -45,9 +45,9 @@ sub decode {
     my ($encoded_str, $key) = @_;
     my $str = '';
 
-    # ...
-    # Алгоритм дешифрования
-    # ...
+    foreach my $cha(split //, $encoded_str){
+        $str = $str.chr( (ord($cha) - $key) % 127);
+        }
 
     print "$str\n";
 }
