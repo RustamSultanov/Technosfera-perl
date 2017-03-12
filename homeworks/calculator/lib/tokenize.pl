@@ -35,21 +35,22 @@ sub tokenize {
 	for my $arg (@chunks) {
 		given ($arg) {
 			when (/^\s*$/) {} 
-			when (/\d/) { 
-				if (/^\d*\.?\d+([e][+-]?\d+)?$/) {
-					$arg = 0 + $arg;
-					push @res, "$arg";
+			when ('^') {
+				if (($prev eq ')') || ($prev =~ /\d/)) {
+					push @res, $arg;
 					$prev = $arg;
-					$lastToken = 1;
-				} else {
-					die "Bad: '$_'";
+					$lastToken = 0;
+				} 
+				else {
+					die "Error!";
 				}
 			}
 			when ([ '+','-' ]){ 
 				if (($prev eq ')') || ($prev =~ /\d/)) {
 					push @res, $arg;
 					$prev = $arg;
-				} else {
+				} 
+				else {
 					$prev = 'U'.$arg;
 					push @res, $prev;
 				}
@@ -60,32 +61,37 @@ sub tokenize {
 					push @res, $arg;
 					$prev = $arg;
 					$lastToken = 0;
-				} else {
-					die "Error!";
 				}
-			}
-			when ('^') {
-				if (($prev eq ')') || ($prev =~ /\d/)) {
-					push @res, $arg;
-					$prev = $arg;
-					$lastToken = 0;
-				} else {
+				else {
 					die "Error!";
 				}
 			}
 			when ([ '(',')' ]) {
 					if ($arg eq '(') {
 						$count++;
-					} else {
+					}
+					else {
 						$count--;
 					}
 					if ($prev =~ /\d/) {
 						$lastToken = 1;
-					} else {
+					} 
+					else {
 						$lastToken = 0;
 					}
 					push @res, $arg;
 					$prev = $arg;
+			}
+			when (/\d/) { 
+				if (/^\d*\.?\d+([e][+-]?\d+)?$/) {
+					$arg = 0 + $arg;
+					push @res, "$arg";
+					$prev = $arg;
+					$lastToken = 1;
+				}
+				else {
+					die "Bad: '$_'";
+				}
 			}
 			default {
 				die "Bad: '$_'";
