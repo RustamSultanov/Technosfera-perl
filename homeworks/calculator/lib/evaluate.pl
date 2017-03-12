@@ -23,12 +23,13 @@ sub evaluate {
 	 my @data;
   for my $r (@{$rpn}){
       given ($r) {
-          when (['+','-','*','/','^','U+','U-']){
+          when (['U+','U-']){
+              if($r eq 'U-'){  my $arg1 = pop(@data);push(@data, -$arg1)}
+          }
+		  when (['+','-','*','/','^','U+','U-']){
               my $arg1 = pop(@data);
               my $arg2 = pop(@data);
               given ($r){
-	          when ("U+") {}
-		  when ('U-') {  push(@data, -$arg1)}
                   when ("*") { push( @data, $arg2 * $arg1) }
                   when ("+") { push( @data, $arg2 + $arg1) }
                   when ("/") { push( @data, $arg2 / $arg1 ) }
