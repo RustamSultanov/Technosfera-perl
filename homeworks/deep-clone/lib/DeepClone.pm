@@ -35,12 +35,52 @@ use warnings;
 =cut
 
 sub clone {
-	my $orig = shift;
+	my $box = shift;
+	return clone2($box);
+}
+
+sub clone2 {
+	my ($orig, $refs) = @_;
 	my $cloned;
-	# ...
-	# deep clone algorith here
-	# ...
+	if (my $ref = ref $orig) {
+		if ($ref eq 'HASH') {
+			if (exists $refs->{$orig}) {
+				$cloned = $refs->{$orig}
+			}
+			else {
+				my %h;
+				$refs->{$orig} = \%h;
+				while (my ($r,$x) = each %$orig) {
+					$h{$r} = clone2($x, $refs);
+					return undef if exists $refs->{"Bad data"};
+				}
+				$cloned = \%h;
+				$refs->{$orig} = $cloned;
+			}
+		}
+		elsif ($ref eq 'ARRAY') {
+			if (exists $refs->{$orig}) {
+				$cloned = $refs->{$orig}
+			}
+			else {
+				my @arr;
+				$refs->{$orig} = \@arr;
+				push @arr, clone2($_, $refs) for @$orig;
+				return undef if exists $refs->{"Bad data"};
+				$cloned = \@arr;
+				$refs->{$orig} = $cloned;
+			}
+		}
+		else {
+			$refs->{"Bad data"} = "No validate";
+			return undef;
+		}
+	}
+	else {
+		$cloned = $orig;
+	}
 	return $cloned;
 }
+
 
 1;
