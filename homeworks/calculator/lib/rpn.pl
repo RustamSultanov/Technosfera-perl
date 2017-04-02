@@ -21,59 +21,71 @@ no warnings 'experimental';
 use FindBin;
 require "$FindBin::Bin/../lib/tokenize.pl";
 
-sub prior($){
-    my $ops=shift;
-    given ($ops){
-        when (['U+','U-']) {return 4;}
-        when (['^']){return 3;}
-        when (['*','/']){return 2;}
-        when (['+','-']){return 1;}
-        default{return 0;}
-    }
+sub prior{
+    my $ops = shift;
+	return
+		$ops eq '+' || $ops eq '-' ? 1 :
+		$ops eq '*' || $ops eq '/' ? 2 :
+		$ops eq 'U+' || $ops eq 'U-' ? 3 :
+		$ops eq '^' ? 3 :
+		-1;
 }
 
 
 sub rpn {
 	my $expr = shift;
-	my $source = tokenize($expr);
+	my $stack = tokenize($expr);
 	my @rpn;
-	my @ops = ();
+	my @ops;
+	my $k;
+	my $size;
 
-	for my $r (@{$source}){
-      given ($r){
-          when (['U+','U-','+','-','*','/','^']){
-              if ($r=~/U[\+\-]|\^/){
-                  while (prior($r)<prior($ops[-1])){
-                      push(@rpn,pop(@ops));
-                  }
-              }
-              else{
-                  while (prior($r)<=prior($ops[-1])){
-                      push(@rpn,pop(@ops));
-                  }
-              }
-              push(@ops,$r);
-          }
-          when('('){
-              push(@ops,$r); 
-          }
-          when(')'){
-              while($ops[-1] ne '('){
-                  if (@ops){push(@rpn,pop(@ops));}
-                  else {die "Something wrong brackets ";}
-              }
-              pop(@ops);
-          }
-          default{
-              $r = 0+$r;
-              push(@rpn,"$r");
-          }
-      }
-  }
-  while (@ops and $ops[-1] ne '('){
-      push(@rpn,pop(@ops));
-  }
-  if (@ops) {die "Bad expression @{$source}";}
+	for my $elem (@$stack) {
+		given ($elem) {
+			when ('(') {
+				push @ops, $elem;
+			}
+			when (')') {
+				$k = pop @ops;
+				while ($k ne '(') {
+					push @rpn, $k;
+					$k = pop @ops;
+				}
+			}
+			when ([ '+', '-', '*', '/' ]){
+				if ($size = @ops > 0) {
+					while (prior($elem) <= prior(@ops[$size = @ops - 1])) {
+						$k = pop @ops;
+						push @rpn, $k;
+						last if ( $size = @ops == 0);
+					}
+				}
+				push @ops, $elem;
+			}
+			when ([ 'U+', 'U-', '^']){
+				if ($size = @ops > 0) {
+					while (prior($elem) < prior(@ops[$size = @ops - 1])) {
+						$k = pop @ops;
+						push @rpn, $k;
+						last if ($size = @ops == 0);
+					}
+				}
+				push @ops, $elem;
+			}
+			when (/\d/) {
+				push @rpn, $elem;
+			}
+			default {
+				die "Bad expr '$_'";
+			}
+		}
+	}
+
+	while ( $size = @ops > 0) {
+		$k = pop @ops;
+		push @rpn, $k;
+	}
+
 	return \@rpn;
 }
 
