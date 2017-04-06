@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use locale;
-use Encode qw(decode);
+use Encode;
 
 BEGIN{
 	if ($] < 5.018) {
