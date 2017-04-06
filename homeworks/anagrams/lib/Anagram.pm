@@ -3,7 +3,7 @@ package Anagram;
 use 5.010;
 use strict;
 use warnings;
-use Encode qw(decode);
+use Encode;
 use locale;
 
 =encoding UTF8
