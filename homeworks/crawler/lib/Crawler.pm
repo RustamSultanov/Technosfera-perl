@@ -44,10 +44,7 @@ sub run {
     my $total_size = 0;
     my @top10_list;
 
-    #............
-    #Код crawler-а
-    #............
-
+  
     return $total_size, @top10_list;
 }
 
